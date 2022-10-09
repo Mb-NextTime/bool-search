@@ -17,8 +17,8 @@ public:
     using map_t = std::unordered_map<size_t, docs_t>;
 
     Request(const std::string &term, const map_t &term_to_doc)
-        : term_(term)
     {
+        term_ = term;
         size_t term_hash = std::hash<std::string>{}(term_);
         auto pos = term_to_doc.find(term_hash);
         if (pos == term_to_doc.end()) {
@@ -49,7 +49,7 @@ public:
     Request operator|(const Request& other) const
     {
         docs_t result_docs;
-        std::set_intersection(docs_.begin(), docs_.end(),
+        std::set_union(docs_.begin(), docs_.end(),
                             other.docs_.begin(), other.docs_.end(),
                             std::inserter(result_docs, result_docs.begin()));
         return Request('(' + term_ + ")|" + other.term_, result_docs);
@@ -65,10 +65,17 @@ public:
     Request operator&(const Request& other) const
     {
         docs_t result_docs;
-        std::set_union(docs_.begin(), docs_.end(),
+        std::set_intersection(docs_.begin(), docs_.end(),
                     other.docs_.begin(), other.docs_.end(),
                     std::inserter(result_docs, result_docs.begin()));
         return Request('(' + term_ + ")&" + other.term_, result_docs);
+    }
+
+    Request& operator&=(const Request& other)
+    {
+        Request res = *this & other;
+        *this = res;
+        return *this;
     }
 
     docs_t get_docs() const
@@ -156,7 +163,7 @@ Request Expression::factor_()
         auto operation = contents_.back();
         if (operation == "&") {
             contents_.pop_back();
-            result |= parentheses_();
+            result &= parentheses_();
         }
         else {
             return result;
