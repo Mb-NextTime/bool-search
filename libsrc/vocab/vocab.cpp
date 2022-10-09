@@ -11,7 +11,7 @@
 #include <search.hpp>
 #include <compress.hpp>
 
-static const bool DEBUG = true;
+static const bool DEBUG = false;
 
 int main(int argc, char* argv[])
 {
